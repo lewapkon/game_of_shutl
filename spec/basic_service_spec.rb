@@ -13,7 +13,7 @@ describe 'Basic Service' do
   it 'responds to POST /quotes with a JSON response and a static price' do
     post '/quotes', request
 
-    last_response.should be_ok
+    expect(last_response).to be_ok
 
     quote = JSON.parse(last_response.body)['quote']
 
