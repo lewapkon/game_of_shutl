@@ -12,6 +12,20 @@ module GameOfShutl
         small_van:  0.3,
         large_van:  0.4
       }
+      # kg
+      set :vehicle_weight_limits, {
+        bicycle:    3,
+        motorbike:  6,
+        parcel_car: 50,
+        small_van:  400
+      }
+      # LxWxH, cm
+      set :vehicle_capacity_limits, {
+        bicycle:    [ 30,  25,  10],
+        motorbike:  [ 35,  25,  25],
+        parcel_car: [100, 100,  75],
+        small_van:  [133, 133, 133]
+      }
       set :vehicle_price_limits, {
         bicycle:    500,
         motorbike:  750,
@@ -25,10 +39,12 @@ module GameOfShutl
       quote = params['quote']
       base_price = ((quote['pickup_postcode'].to_i(36) - quote['delivery_postcode'].to_i(36)) / 1000).abs
 
-      vehicle, vehicle_markup = findSufficientVehicle(quote['vehicle'].to_sym, base_price)
+      vehicle = quote['vehicle'] != nil ? quote['vehicle'].to_sym : find_smallest_vehicle(quote['products'])
+
+      vehicle, vehicle_markup = find_sufficient_vehicle(vehicle, base_price)
       if vehicle == :invalid_vehicle then
         return {
-          error: "invalid vehicle"
+          error: "invalid vehicle: #{quote['vehicle']}"
         }.to_json
       end
 
@@ -42,7 +58,28 @@ module GameOfShutl
       }.to_json
     end
 
-    def findSufficientVehicle(vehicle, base_price)
+    def find_smallest_vehicle(products)
+      product = products[0]
+      big_enough_vehicle = settings.vehicles.find { |vehicle|
+        weight_limit = settings.vehicle_weight_limits[vehicle]
+        capacity_limit = settings.vehicle_capacity_limits[vehicle]
+        good_weight?(product, weight_limit) and fits?(product, capacity_limit)
+      }
+      big_enough_vehicle || :large_van
+    end
+
+    def good_weight?(product, weight_limit)
+      weight_limit == nil or product['weight'] <= weight_limit
+    end
+
+    def fits?(product, capacity)
+      capacity == nil or
+        (product['length'] <= capacity[0] and
+         product['width']  <= capacity[1] and
+         product['height'] <= capacity[2])
+    end
+
+    def find_sufficient_vehicle(vehicle, base_price)
       vehicle_markup = 0
       vehicle_idx = settings.vehicles.index(vehicle)
 
@@ -53,12 +90,12 @@ module GameOfShutl
       loop do
         vehicle_markup = base_price * settings.vehicle_markups[vehicle]
         limit = settings.vehicle_price_limits[vehicle]
-        break if limit == nil || base_price + vehicle_markup <= limit
+        break if limit == nil or base_price + vehicle_markup <= limit
 
         vehicle_idx += 1
         vehicle = settings.vehicles[vehicle_idx]
       end
-      return [vehicle, vehicle_markup]
+      [vehicle, vehicle_markup]
     end
   end
 end

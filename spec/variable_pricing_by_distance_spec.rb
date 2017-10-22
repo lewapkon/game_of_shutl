@@ -29,12 +29,35 @@ describe 'Variable pricing by distance' do
     quote = JSON.parse(last_response.body)['quote']
     expect(quote['price']).to eql 852.8
     expect(quote['vehicle']).to eql 'small_van'
+  end
 
+  it 'responds with a swapped vehicle' do
     request = {
       quote: {
         pickup_postcode:   'SW1A 1AA',
         delivery_postcode: 'EC2A 3LT',
         vehicle:           'motorbike'
+      }
+    }.to_json
+
+    post '/quotes', request
+
+    quote = JSON.parse(last_response.body)['quote']
+    expect(quote['price']).to eql 814.8
+    expect(quote['vehicle']).to eql 'parcel_car'
+  end
+
+  it 'responds without a specified vehicle' do
+    request = {
+      quote: {
+        pickup_postcode:   'SW1A 1AA',
+        delivery_postcode: 'EC2A 3LT',
+        products: [{
+          weight: 10,
+          width: 50,
+          height: 50,
+          length: 50
+        }]
       }
     }.to_json
 
@@ -57,6 +80,6 @@ describe 'Variable pricing by distance' do
     post '/quotes', request
 
     error = JSON.parse(last_response.body)['error']
-    expect(error).to eql 'invalid vehicle'
+    expect(error).to eql 'invalid vehicle: forklift'
   end
 end
