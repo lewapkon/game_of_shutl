@@ -4,8 +4,8 @@ require 'json'
 module GameOfShutl
   class Server < Sinatra::Base
     post '/quotes' do
-      quote = JSON.parse(params['quote'])
-
+      params = JSON.parse(params ? params : request.body.read)
+      quote = params['quote']
       price = ((quote['pickup_postcode'].to_i(36) - quote['delivery_postcode'].to_i(36)) / 1000).abs
 
       {

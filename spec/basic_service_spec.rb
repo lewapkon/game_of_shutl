@@ -6,8 +6,8 @@ describe 'Basic Service' do
       quote: {
         pickup_postcode:   'SW1A 1AA',
         delivery_postcode: 'EC2A 3LT'
-      }.to_json
-    }
+      }
+    }.to_json
   end
 
   it 'responds to POST /quotes with a JSON response and a static price' do
