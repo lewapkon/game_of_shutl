@@ -20,7 +20,7 @@ describe 'Basic Service' do
 
     expect(quote['pickup_postcode']).to eql "SW1A 1AA"
     expect(quote['delivery_postcode']).to eql "EC2A 3LT"
-    expect(quote['vehicle']).to eql "motorbike"
-    expect(quote['price']).to eql 780.85
+    expect(quote['vehicle']).to eql "parcel_car"
+    expect(quote['price']).to eql 814.8
   end
 end

@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe 'Variable pricing by distance' do
-  it 'converts the postcodes to base-32 and subtracts delivery from pickup' do
+  it 'converts the postcodes to base-32, subtracts delivery from pickup and adds appropriate markup' do
     request = {
       quote: {
         pickup_postcode:   'SW1A 1AA',
@@ -11,7 +11,10 @@ describe 'Variable pricing by distance' do
     }.to_json
 
     post '/quotes', request
-    expect(JSON.parse(last_response.body)['quote']['price']).to eql 814.8
+
+    quote = JSON.parse(last_response.body)['quote']
+    expect(quote['price']).to eql 814.8
+    expect(quote['vehicle']).to eql 'parcel_car'
 
     request = {
       quote: {
@@ -24,6 +27,36 @@ describe 'Variable pricing by distance' do
     post '/quotes', request
 
     quote = JSON.parse(last_response.body)['quote']
-    expect(JSON.parse(last_response.body)['quote']['price']).to eql 852.8
+    expect(quote['price']).to eql 852.8
+    expect(quote['vehicle']).to eql 'small_van'
+
+    request = {
+      quote: {
+        pickup_postcode:   'SW1A 1AA',
+        delivery_postcode: 'EC2A 3LT',
+        vehicle:           'motorbike'
+      }
+    }.to_json
+
+    post '/quotes', request
+
+    quote = JSON.parse(last_response.body)['quote']
+    expect(quote['price']).to eql 814.8
+    expect(quote['vehicle']).to eql 'parcel_car'
+  end
+
+  it 'responds with invalid vehicle' do
+    request = {
+      quote: {
+        pickup_postcode:   'SW1A 1AA',
+        delivery_postcode: 'EC2A 3LT',
+        vehicle:           'forklift'
+      }
+    }.to_json
+
+    post '/quotes', request
+
+    error = JSON.parse(last_response.body)['error']
+    expect(error).to eql 'invalid vehicle'
   end
 end
