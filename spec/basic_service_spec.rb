@@ -5,7 +5,8 @@ describe 'Basic Service' do
     {
       quote: {
         pickup_postcode:   'SW1A 1AA',
-        delivery_postcode: 'EC2A 3LT'
+        delivery_postcode: 'EC2A 3LT',
+        vehicle:           'motorbike'
       }
     }.to_json
   end
@@ -19,6 +20,7 @@ describe 'Basic Service' do
 
     expect(quote['pickup_postcode']).to eql "SW1A 1AA"
     expect(quote['delivery_postcode']).to eql "EC2A 3LT"
-    expect(quote['price']).to eql 679
+    expect(quote['vehicle']).to eql "motorbike"
+    expect(quote['price']).to eql 780.85
   end
 end
